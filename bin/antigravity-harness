@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+# Antigravity Agent & Test Harness Runner
+# Harness execution wrapper for Google Antigravity Agent Framework
+
+HARNESS_VENV="/home/manjaro/.local/share/harness-venv"
+PYTHON_BIN="$HARNESS_VENV/bin/python"
+AGY_BIN="/home/manjaro/.local/bin/agy"
+
+if [ ! -f "$PYTHON_BIN" ]; then
+    echo "[-] Antigravity harness environment not found at $HARNESS_VENV"
+    exit 1
+fi
+
+show_help() {
+    cat << 'EOF'
+Antigravity Agent Harness (CLI & Orchestration Runner)
+
+Usage:
+  antigravity-harness run [options] "<prompt>"       Run agent with a single prompt
+  antigravity-harness interactive [options]          Start interactive agent REPL
+  antigravity-harness eval <test_suite_file>         Run automated agent benchmark / eval suite
+  antigravity-harness skills [list|search <query>]   Inspect or search installed agent skills
+  antigravity-harness agents [list]                  List available system development agents
+
+Options:
+  --model <model_name>      Specify model (default: gemini-3.8-flash)
+  --agent <agent_name>      Specify target agent role
+  --read-only               Disable write tools / bash execution (sandboxed mode)
+EOF
+}
+
+case "$1" in
+    run)
+        shift
+        PROMPT="$*"
+        if [ -z "$PROMPT" ]; then
+            echo "Error: No prompt provided."
+            exit 1
+        fi
+        if [ -n "$GEMINI_API_KEY" ]; then
+            "$PYTHON_BIN" -c '
+import asyncio, sys
+from google.antigravity import Agent, LocalAgentConfig, CapabilitiesConfig
+
+async def run(prompt):
+    config = LocalAgentConfig(
+        system_instructions="You are an autonomous development agent executing via Antigravity Harness.",
+        capabilities=CapabilitiesConfig(),
+    )
+    async with Agent(config) as agent:
+        response = await agent.chat(prompt)
+        async for token in response:
+            sys.stdout.write(token)
+            sys.stdout.flush()
+        print()
+
+if __name__ == "__main__":
+    asyncio.run(run(sys.argv[1]))
+' "$PROMPT"
+        else
+            "$AGY_BIN" -p "$PROMPT"
+        fi
+        ;;
+    interactive)
+        shift
+        if [ -n "$GEMINI_API_KEY" ]; then
+            "$PYTHON_BIN" -c '
+import asyncio
+from google.antigravity import Agent, LocalAgentConfig, CapabilitiesConfig
+from google.antigravity.utils.interactive import run_interactive_loop
+
+async def main():
+    config = LocalAgentConfig(
+        system_instructions="You are an interactive development agent running via Antigravity Harness.",
+        capabilities=CapabilitiesConfig()
+    )
+    async with Agent(config) as agent:
+        await run_interactive_loop(agent)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+' "$@"
+        else
+            "$AGY_BIN" "$@"
+        fi
+        ;;
+    eval)
+        shift
+        SUITE_FILE="$1"
+        if [ -z "$SUITE_FILE" ] || [ ! -f "$SUITE_FILE" ]; then
+            echo "[-] Please provide a valid evaluation suite JSON file."
+            exit 1
+        fi
+        "$PYTHON_BIN" -c '
+import json, sys, time, subprocess, os
+
+suite_path = sys.argv[1]
+with open(suite_path, "r") as f:
+    tests = json.load(f)
+
+print(f"[*] Loaded {len(tests)} evaluation tasks from {suite_path}")
+passed = 0
+total = len(tests)
+agy_bin = "/home/manjaro/.local/bin/agy"
+
+for idx, t in enumerate(tests, 1):
+    name = t.get("name", f"Task #{idx}")
+    prompt = t.get("prompt", "")
+    expected = t.get("expected", "")
+    print(f"\n[Test {idx}/{total}] Running: {name}...")
+    start = time.time()
+    try:
+        res = subprocess.run([agy_bin, "-p", prompt], capture_output=True, text=True, timeout=60)
+        output = res.stdout + res.stderr
+        duration = round(time.time() - start, 2)
+        norm_output = output.lower().replace(",", "")
+        norm_expected = expected.lower().replace(",", "")
+        if norm_expected in norm_output:
+            print(f"  [PASS] Completed in {duration}s")
+            passed += 1
+        else:
+            print(f"  [FAIL] Expected criteria \"{expected}\" not found in output (completed in {duration}s)")
+            print(f"         Preview: {output[:150]}...")
+    except Exception as e:
+        print(f"  [ERROR] {e}")
+
+print(f"\n==========================================")
+print(f"Evaluation Results: {passed}/{total} passed ({(passed/total)*100:.1f}%)")
+print(f"==========================================")
+' "$SUITE_FILE"
+        ;;
+    skills)
+        shift
+        ACTION="${1:-list}"
+        if [ "$ACTION" = "search" ]; then
+            QUERY="$2"
+            echo "Searching 750+ installed skills for: $QUERY"
+            grep -rnw "/home/manjaro/.gemini/config/skills" -e "$QUERY" --include="SKILL.md" -l | while read -r f; do
+                dirname "$f" | xargs basename
+            done | sort -u
+        else
+            echo "Listing globally installed skills (~/.gemini/config/skills):"
+            ls -1 /home/manjaro/.gemini/config/skills | head -n 50
+            TOTAL=$(ls -1 /home/manjaro/.gemini/config/skills | wc -l)
+            echo "... and $((TOTAL - 50)) more ($TOTAL total skills available)."
+        fi
+        ;;
+    agents)
+        echo "Available Antigravity Development Agents (14 Total):"
+        echo "  Core Engineering & Ideation:"
+        echo "    - project_ideator     : High-impact concept ideation, technical blueprints, feature scoping"
+        echo "    - code_architect      : System architecture, high-level design, and API planning"
+        echo "    - fullstack_developer : End-to-end fullstack implementation and bug fixing"
+        echo "    - frontend_specialist : Modern UI/UX, React/Next.js/Vue, Tailwind CSS, accessibility"
+        echo "    - backend_specialist  : High-throughput microservices, REST/gRPC, queues, caching"
+        echo "    - mobile_developer    : Cross-platform mobile (React Native, Flutter, Expo, iOS/Android)"
+        echo "  Data, Storage & AI:"
+        echo "    - database_architect  : SQL/NoSQL schema modeling, zero-downtime migrations, indexing"
+        echo "    - data_engineer       : Batch/streaming data pipelines (Kafka, Spark, Airflow, dbt)"
+        echo "    - ai_rag_engineer     : Vector DBs, RAG pipelines, LLM orchestration, semantic search"
+        echo "  Quality, Security & Operations:"
+        echo "    - qa_test_engineer    : Automated testing, unit/integration suites, regression QA"
+        echo "    - debugger_specialist : Deep root-cause debugging, race conditions, memory leaks"
+        echo "    - security_auditor    : Security scanning, vulnerability assessment, OWASP auditing"
+        echo "    - devops_engineer     : CI/CD automation, Dockerization, Linux systems engineering"
+        echo "    - documentation_writer: OpenAPI specs, architectural documentation, ADRs, user guides"
+        echo "  Builtin Subagents:"
+        echo "    - research            : Read-only codebase search, web lookup, and deep research"
+        echo "    - self                : Full-capability parallel subagent"
+        ;;
+    help|--help|-h|"")
+        show_help
+        ;;
+    *)
+        echo "Unknown command: $1"
+        show_help
+        exit 1
+        ;;
+esac

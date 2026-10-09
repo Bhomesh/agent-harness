@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Velocity 10 Invariant Architectural Gate",
+    "prompt": "Verify the presence and integrity of all 18 core architectural components conforming to the Forteiva and BuildShift standard.",
+    "expected": "18 components assembled & verified"
+  },
+  {
+    "name": "Vitest Automated Test Suite Verification",
+    "prompt": "Execute the comprehensive 60-assertion Vitest suite across navigation, modals, SVG geometry, and accessibility.",
+    "expected": "100% assertions green"
+  },
+  {
+    "name": "Production Compilation Gate",
+    "prompt": "Verify production bundle packaging through Vite and TypeScript compiler.",
+    "expected": "Production bundle generated"
+  },
+  {
+    "name": "Closed-Loop Error Healing Engine",
+    "prompt": "Simulate and resolve TypeScript AST TS2322 errors automatically without developer intervention.",
+    "expected": "Self-healing succeeded"
+  }
+]

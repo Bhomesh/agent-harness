@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Velocity Swarm CLI Entrypoint
+# Connects directly to Antigravity Agent Harness
+
+HARNESS_SCRIPT="/home/manjaro/agentforge/velocity-swarm/velocity_orchestrator.py"
+SCAFFOLD_SCRIPT="/home/manjaro/agentforge/velocity-swarm/scaffold_template.py"
+EVAL_SCRIPT="/home/manjaro/agentforge/velocity-swarm/run_eval.py"
+HEAL_SCRIPT="/home/manjaro/agentforge/velocity-swarm/test_healing.py"
+
+case "$1" in
+    scaffold)
+        shift
+        TARGET_DIR="${1:-/home/manjaro/new-velocity-site}"
+        BRAND_NAME="${2:-Velocity Enterprise}"
+        python3 "$SCAFFOLD_SCRIPT" "$TARGET_DIR" "$BRAND_NAME"
+        ;;
+    run|build)
+        shift
+        TARGET_DIR="${1:-.}"
+        BRAND_NAME="${2:-BuildShift Technologies}"
+        python3 "$HARNESS_SCRIPT" "$TARGET_DIR" "$BRAND_NAME"
+        ;;
+    eval|benchmark)
+        python3 "$EVAL_SCRIPT"
+        ;;
+    test-heal)
+        python3 "$HEAL_SCRIPT"
+        ;;
+    help|--help|-h|"")
+        cat << 'HELP'
+Velocity Swarm Agent CLI (Forteiva / BuildShift Architecture Engine)
+
+Commands:
+  velocity-swarm scaffold <dir> "<Brand Name>"   Scaffold a clean template repo with the 10 Invariants
+  velocity-swarm run [dir] ["<Brand Name>"]      Execute the 6-phase multi-agent development & QA pipeline
+  velocity-swarm eval                           Run full benchmark evaluation suite
+  test-heal                                     Run automated closed-loop error-healing validation
+HELP
+        ;;
+    *)
+        echo "Unknown option: $1"
+        exit 1
+        ;;
+esac

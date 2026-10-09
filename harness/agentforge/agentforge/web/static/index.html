@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgentForge | Multi-Agent Collaborative AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .glass {
+      background: rgba(18, 24, 38, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0b0f19;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Top Navigation -->
+  <header class="glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between border-b border-slate-800">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20">
+        <i class="fa-solid fa-microchip text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-300 to-white bg-clip-text text-transparent">AgentForge</h1>
+        <p class="text-xs text-slate-400 font-medium">Autonomous Collaborative Multi-Agent Mesh</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <div class="flex items-center space-x-2 text-xs bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">
+        <span id="ws-indicator" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span id="ws-text" class="text-slate-300 font-mono">Connecting...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Grid -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Left Sidebar: Team Roster & Settings -->
+    <div class="lg:col-span-4 space-y-6">
+      <!-- Swarm Controls -->
+      <div class="glass p-5 rounded-2xl shadow-xl space-y-4">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
+          <i class="fa-solid fa-sliders text-cyan-400"></i>
+          <span>Swarm Configuration</span>
+        </h2>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">LLM Provider</label>
+          <select id="providerSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500">
+            <option value="ollama" selected>Ollama (Local / Offline)</option>
+            <option value="openai">OpenAI (GPT-4o / Compatible)</option>
+            <option value="gemini">Google Gemini</option>
+            <option value="anthropic">Anthropic Claude</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Model Name</label>
+          <input id="modelInput" type="text" value="deepseek-r1:7b" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 font-mono" />
+        </div>
+      </div>
+
+      <!-- Agent Roster Status -->
+      <div class="glass p-5 rounded-2xl shadow-xl space-y-3">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
+          <i class="fa-solid fa-users-gear text-indigo-400"></i>
+          <span>Active Specialist Agents</span>
+        </h2>
+        <div class="space-y-2">
+          <!-- Supervisor -->
+          <div class="glass-card p-3 rounded-xl flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-lg bg-fuchsia-500/20 text-fuchsia-400 flex items-center justify-center font-bold text-xs">SV</span>
+              <div>
+                <div class="text-sm font-semibold text-slate-200">Supervisor</div>
+                <div class="text-xs text-slate-400">Task Decomposition & Synthesis</div>
+              </div>
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Ready</span>
+          </div>
+
+          <!-- Researcher -->
+          <div class="glass-card p-3 rounded-xl flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-xs">RS</span>
+              <div>
+                <div class="text-sm font-semibold text-slate-200">Researcher</div>
+                <div class="text-xs text-slate-400">Web & Repo Discovery</div>
+              </div>
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Ready</span>
+          </div>
+
+          <!-- Coder -->
+          <div class="glass-card p-3 rounded-xl flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">CD</span>
+              <div>
+                <div class="text-sm font-semibold text-slate-200">Developer / Coder</div>
+                <div class="text-xs text-slate-400">Code Synthesis & Execution</div>
+              </div>
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Ready</span>
+          </div>
+
+          <!-- QA -->
+          <div class="glass-card p-3 rounded-xl flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs">QA</span>
+              <div>
+                <div class="text-sm font-semibold text-slate-200">QA Specialist</div>
+                <div class="text-xs text-slate-400">Automated Testing & Validation</div>
+              </div>
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Ready</span>
+          </div>
+
+          <!-- Reviewer -->
+          <div class="glass-card p-3 rounded-xl flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center font-bold text-xs">RV</span>
+              <div>
+                <div class="text-sm font-semibold text-slate-200">Security Reviewer</div>
+                <div class="text-xs text-slate-400">OWASP Audit & Quality Gate</div>
+              </div>
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Ready</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Mission Control & Live Stream -->
+    <div class="lg:col-span-8 flex flex-col space-y-6">
+      <!-- Prompt / Objective Dispatch -->
+      <div class="glass p-5 rounded-2xl shadow-xl space-y-4">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
+          <i class="fa-solid fa-bullseye text-emerald-400"></i>
+          <span>Assign Mission Objective</span>
+        </h2>
+        <div class="flex space-x-3">
+          <textarea id="objectiveInput" rows="2" placeholder="e.g. Build a high-performance LRU cache in Python with thread-safe locks and unit tests..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 custom-scrollbar"></textarea>
+          <button id="dispatchBtn" onclick="dispatchMission()" class="bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-semibold px-6 py-2 rounded-xl transition duration-200 flex items-center space-x-2 shadow-lg shadow-cyan-500/20">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Launch</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Event Stream -->
+      <div class="glass p-5 rounded-2xl shadow-xl flex-1 flex flex-col min-h-[460px]">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
+            <i class="fa-solid fa-satellite-dish text-indigo-400"></i>
+            <span>Real-time Swarm Telemetry & Log</span>
+          </h2>
+          <button onclick="clearLogs()" class="text-xs text-slate-400 hover:text-slate-200">
+            <i class="fa-solid fa-trash-can mr-1"></i> Clear
+          </button>
+        </div>
+        <div id="logsContainer" class="flex-1 overflow-y-auto space-y-3 custom-scrollbar text-xs font-mono max-h-[420px]">
+          <div class="text-slate-500 italic p-3 text-center">System initialized. Awaiting mission objective dispatch...</div>
+        </div>
+      </div>
+
+      <!-- Mission Synthesis Output -->
+      <div id="synthesisSection" class="glass p-5 rounded-2xl shadow-xl hidden space-y-3">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
+          <i class="fa-solid fa-flag-checkered text-green-400"></i>
+          <span>Executive Mission Synthesis</span>
+        </h2>
+        <div id="synthesisContent" class="bg-slate-900/80 p-4 rounded-xl text-slate-200 text-sm whitespace-pre-wrap font-sans border border-slate-800"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let ws;
+    function connectWS() {
+      const loc = window.location;
+      const wsUrl = (loc.protocol === "https:" ? "wss://" : "ws://") + loc.host + "/ws";
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        document.getElementById("ws-indicator").className = "w-2 h-2 rounded-full bg-emerald-400";
+        document.getElementById("ws-text").innerText = "Swarm Mesh Online";
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        appendLog(data);
+      };
+
+      ws.onclose = () => {
+        document.getElementById("ws-indicator").className = "w-2 h-2 rounded-full bg-red-400 animate-pulse";
+        document.getElementById("ws-text").innerText = "Disconnected. Reconnecting...";
+        setTimeout(connectWS, 3000);
+      };
+    }
+
+    function appendLog(data) {
+      const container = document.getElementById("logsContainer");
+      const el = document.createElement("div");
+      el.className = "p-2.5 rounded-lg border border-slate-800 bg-slate-900/60";
+
+      const time = new Date(data.timestamp * 1000).toLocaleTimeString();
+      let typeBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 uppercase">${data.event_type}</span>`;
+      
+      if (data.event_type.includes("tool")) {
+        typeBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 uppercase">TOOL</span>`;
+      } else if (data.event_type.includes("completed")) {
+        typeBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 uppercase">DONE</span>`;
+      }
+
+      el.innerHTML = `
+        <div class="flex items-center justify-between text-slate-400 mb-1">
+          <div class="flex items-center space-x-2">
+            ${typeBadge}
+            <span class="font-bold text-slate-200">${data.sender}</span>
+          </div>
+          <span class="text-[10px] text-slate-500">${time}</span>
+        </div>
+        <div class="text-slate-300 mt-1">${JSON.stringify(data.payload, null, 2)}</div>
+      `;
+      container.appendChild(el);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function clearLogs() {
+      document.getElementById("logsContainer").innerHTML = "";
+    }
+
+    async function dispatchMission() {
+      const objective = document.getElementById("objectiveInput").value.trim();
+      if (!objective) return alert("Please specify a mission objective.");
+
+      const provider = document.getElementById("providerSelect").value;
+      const model = document.getElementById("modelInput").value.trim();
+      const btn = document.getElementById("dispatchBtn");
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Running...</span>`;
+
+      try {
+        const res = await fetch("/api/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ objective, provider, model })
+        });
+        const data = await res.json();
+        
+        // Show synthesis
+        document.getElementById("synthesisSection").classList.remove("hidden");
+        document.getElementById("synthesisContent").innerText = data.synthesis;
+      } catch (err) {
+        alert("Execution error: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i><span>Launch</span>`;
+      }
+    }
+
+    window.onload = connectWS;
+  </script>
+</body>
+</html>

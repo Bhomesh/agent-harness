@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Token Budget & Primacy Verification",
+    "prompt": "Explain the serial position effect in context engineering and state where critical constraints should be placed in an LLM prompt.",
+    "expected": "recency"
+  },
+  {
+    "name": "Prefix Caching Threshold Test",
+    "prompt": "What is the minimum token threshold required for Google Gemini 3.x Flash to activate hardware context caching?",
+    "expected": "4096"
+  },
+  {
+    "name": "Security Audit SQL Injection Guard",
+    "prompt": "Evaluate this query: 'SELECT * FROM users WHERE user = ' + req.body.user. Is this safe or does it have a SQL injection vulnerability?",
+    "expected": "injection"
+  },
+  {
+    "name": "Memory Hierarchy Categorization",
+    "prompt": "In an agentic memory hierarchy, what are the three distinct tiers of memory?",
+    "expected": "working"
+  }
+]
