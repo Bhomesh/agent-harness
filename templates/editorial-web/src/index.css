@@ -431,7 +431,7 @@ body {
 .site-hero__img {
   object-fit: cover;
   object-position: center;
-  filter: saturate(.88) contrast(.96);
+  filter: saturate(1.05) contrast(1.02);
   width: 100%;
   height: 100%;
   position: absolute;
@@ -441,7 +441,10 @@ body {
 .site-hero__scrim {
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(90deg, #faf7fff7 0%, #faf7ffe0 34%, #faf7ff18 72%), linear-gradient(180deg, transparent 55%, rgba(17, 15, 56, 0.18) 100%);
+  background: 
+    linear-gradient(90deg, #faf7fff9 0%, #faf7ffe6 35%, #faf7ff33 75%),
+    linear-gradient(180deg, transparent 60%, rgba(17, 15, 56, 0.12) 100%),
+    radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.15) 0%, transparent 60%);
   position: absolute;
   inset: 0;
 }
